@@ -29,6 +29,35 @@ Route::get('products/{url}','ProductController@products');
 Route::get('product/{id}','ProductController@product');
 // get product price
 Route::get('/get_product_price','ProductController@getProductPrice');
+//cart  routes
+Route::match(['get','post'],'/add_cart','ProductController@addCart');
+Route::get('/cart','ProductController@cart');
+Route::get('/cart/delete_product/{id}','ProductController@deleteCartProduct');
+Route::get('/cart/update_quantity/{id}/{quantitiy}','ProductController@updateCartProduct');
+// Apply Coupon
+Route::post('/cart/apply_coupon','ProductController@applyCoupon');
+
+// User Routes
+Route::match(['get','post'],'/login_register','UsersController@LoginRegister');
+Route::match(['get','post'],'/check_email','UsersController@checkEmail');
+Route::post('/user_register','UsersController@register');
+Route::post('/user_login','UsersController@login');
+Route::get('/user_logout','UsersController@logout');
+
+Route::group(['middleware'=>['frontlogin']],function(){
+
+Route::match(['get','post'],'/account','UsersController@account');
+// Check User Current Password
+	Route::post('/check_user_pwd','UsersController@chkUserPassword');
+  // Update User Password
+  	Route::post('/update_user_pwd','UsersController@updatePassword');
+});
+
+
+
+
+
+
 
 // Admin Routes
 
@@ -57,11 +86,25 @@ Route::get('/home', 'HomeController@index')->name('home');
 
      // Proucts Attributes RouteServiceProvider
       Route::match(['get','post'],'/admin/add_attributes/{id}','ProductController@addAttribute');
+      Route::match(['get','post'],'/admin/edit_attributes/{id}','ProductController@editAttribute');
       Route::get('/admin/delete_attribute/{id}','ProductController@deleteAttribute');
 
       // add alternate image
         Route::match(['get','post'],'/admin/add_images/{id}','ProductController@addImages');
-          Route::get('/admin/delete_alt_image/{id}','ProductController@deleteAltImage');
+        Route::get('/admin/delete_alt_image/{id}','ProductController@deleteAltImage');
+
+    // Coupons routes
+
+    Route::match(['get','post'],'/admin/add_coupons','CouponsController@addCoupon');
+    Route::get('/admin/view_coupons','CouponsController@viewCoupons');
+    Route::match(['get','post'],'/admin/edit_coupon/{id}','CouponsController@editCoupon');
+    Route::get('/admin/delete_coupon/{id}','CouponsController@deleteCoupon');
+
+    //banners Routes
+     Route::match(['get','post'],'/admin/add_banner','BannersController@addBanner');
+     Route::get('/admin/view_banners','BannersController@viewBanners');
+     Route::match(['get','post'],'/admin/edit_banner/{id}','BannersController@editBanner');
+     Route::get('/admin/delete_banner/{id}','BannersController@deleteBanner');
 
 });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Auth;
 use Session;
 use Image;
@@ -10,6 +11,8 @@ use App\Category;
 use App\Product;
 use App\ProductAttribute;
 use App\ProductsImage;
+use App\Coupon;
+use DB;
 
 class ProductController extends Controller
 {
@@ -60,8 +63,14 @@ class ProductController extends Controller
 
                         }
                     }
+                    if(empty( $request->input('status'))) {
+                         $data['status'] = 0;
+                    }else {
+                        $data['status'] = 1;
+                    }
+                    $product->status = $data['status'];
 
-                      $product->save();
+                    $product->save();
 		            	return redirect()->back()->with('flash_success_message', 'Product has been added successfully');
          }
 
@@ -121,8 +130,14 @@ class ProductController extends Controller
             if(empty($data['care'])){
                       $data['care'] = '';
             }
+            if(empty( $request->input('status'))) {
+                 $data['status'] = 0;
+            }else {
+                $data['status'] = 1;
+            }
+
                 Product::where(['id'=>$id])->update(['category_id'=>$data['category_id'],'product_name'=>$data['product_name'],
-                'product_code'=>$data['product_code'],'product_color'=>$data['product_color'],'description'=>$data['description'],'care'=>$data['care'],'price'=>$data['price'],'image'=>$fileName]);
+                'product_code'=>$data['product_code'],'product_color'=>$data['product_color'],'description'=>$data['description'],'care'=>$data['care'],'price'=>$data['price'],'image'=>$fileName,'status'=>$data['status']]);
 
                  return redirect()->back()->with('flash_success_message', 'Product has been edited successfully');
        }
@@ -231,6 +246,21 @@ public function addAttribute(Request $request , $id=null) {
 }
 
 
+// edit attribute function
+public function editAttribute(Request $request , $id=null){
+
+  if($request->isMethod('post')){
+           $data = $request->all();
+           /*echo "<pre>"; print_r($data); die;*/
+           foreach($data['idAttr'] as $key=> $attr){
+               if(!empty($attr)){
+                   ProductAttribute::where(['id' => $data['idAttr'][$key]])->update(['price' => $data['price'][$key], 'stock' => $data['stock'][$key]]);
+               }
+           }
+           return redirect('admin/add_attributes/'.$id)->with('flash_success_message', 'Product Attributes has been updated successfully');
+       }
+}
+
 // add product alternate images
 public function addImages(Request $request, $id=null){
         $productDetails = Product::where(['id' => $id])->first();
@@ -320,10 +350,10 @@ public function products($url=null) {
         foreach ($subcats as $subcat) {
           $subcatsid[]= $subcat->id;
          }
-          $products = Product::whereIn('category_id',$subcatsid)->get();
+          $products = Product::whereIn('category_id',$subcatsid)->where('status',1)->get();
       //  echo $subcatsid; die;
     }else {
-     $products = Product::where(['category_id'=>$categoryDetails->id])->get();
+     $products = Product::where(['category_id'=>$categoryDetails->id])->where('status',1)->get();
    }
     return view('products.listing')->with(compact('products','categoryDetails','categories'));
 } // end products
@@ -332,12 +362,22 @@ public function products($url=null) {
 
 public function product($id=null) {
 
-     $productDetails = Product::with('attributes')->where('id',$id)->first();
+        $productsCount = Product::where(['id'=>$id,'status'=>1])->count();
+        if($productsCount == 0) {
+          abort(404);
+        }
+
+     $productDetails = Product::with('attributes')->where(['id'=>$id])->first();
+
      $categories = Category::with('categories')->where(['parent_id'=>'0'])->get();
      $productaltimages = ProductsImage::where(['product_id'=>$id])->get();
      $count = ProductsImage::where(['product_id'=>$id])->count();
     // echo $count; die;
-     return view('products.detail')->with(compact('productDetails','categories','productaltimages','count'));
+    $totalstock = ProductAttribute::where(['product_id'=>$id])->sum('stock');
+    //echo $totalstock; die;
+    $relatedProducts = Product::where('id','!=',$id)->where(['category_id'=>$productDetails->category_id])->get();
+
+     return view('products.detail')->with(compact('productDetails','categories','productaltimages','count','totalstock','relatedProducts'));
 
 }
 
@@ -349,7 +389,137 @@ public function getProductPrice(Request $request) {
     $proArr = explode("-",$data['idsize']);
     $proAttr = ProductAttribute::where(['product_id'=>$proArr[0],'size'=>$proArr[1]])->first();
     echo $proAttr->price; // this result i will use it in ajax and put it in price  echo mean response it is important
+    echo "#";
+    echo $proAttr->stock;
+}
+
+// Add Items To Cart
+public function addCart(Request $request){
+
+  Session::forget('CouponAmount');
+  Session::forget('CouponCode');
+  $data = $request->all();
+       /*echo "<pre>"; print_r($data); die;*/
+       if(empty($data['user_email'])){
+           $data['user_email'] = '';
+       }
+       $session_id = Session::get('session_id');
+         if(!isset($session_id)){
+             $session_id = Str::random(40);
+             Session::put('session_id',$session_id);
+         }
+
+
+
+
+       $sizeIDArr = explode('-',$data['size']);
+       $product_size = $sizeIDArr[1];
+       $getSKU = ProductAttribute::select('sku')->where(['product_id' => $data['product_id'], 'size' => $product_size])->first();
+
+       $countProducts = DB::table('cart')->where(['product_id' => $data['product_id'],'product_color' => $data['product_color'],'size' => $product_size,'session_id' => $session_id])->count();
+    //   echo $countProducts; die;
+         if($countProducts>0){
+             return redirect()->back()->with('flash_message_error','Product already exist in Cart!');
+         }
+
+        DB::table('cart')->insert(['product_id' => $data['product_id'],'product_name' => $data['product_name'],
+        'product_code' => $getSKU['sku'],'product_color' => $data['product_color'],
+        'price' => $data['price'],'size' => $product_size,'quantity' => $data['quantity'],
+        'user_email' => $data['user_email'],'session_id' =>$session_id]);
+
+         return redirect('cart')->with('flash_success_message','Product has been added in Cart!');
 
 }
+
+public function cart() {
+  $session_id = Session::get('session_id');
+  $userCart = DB::table('cart')->where(['session_id' => $session_id])->get();
+
+  foreach($userCart as $key => $product){
+           $productDetails = Product::where('id',$product->product_id)->first();
+           $userCart[$key]->image = $productDetails->image;
+       }
+
+     /*echo "<pre>"; print_r($userCart); die;*/
+     return view('products.cart')->with(compact('userCart'));
+}
+
+public function deleteCartProduct($id = null ) {
+  Session::forget('CouponAmount');
+  Session::forget('CouponCode');
+   DB::table('cart')->where(['id'=>$id])->delete();
+   return redirect('cart')->with('flash_success_message','Product has been deleted Successfully!');
+}
+
+public function updateCartProduct($id = null ,$quantity= null) {
+
+  Session::forget('CouponAmount');
+  Session::forget('CouponCode');
+    $getProductSKU = DB::table('cart')->select('product_code','quantity')->where('id',$id)->first();
+       $getProductStock = ProductAttribute::where('sku',$getProductSKU->product_code)->first();
+       $updated_quantity = $getProductSKU->quantity+$quantity;
+       if($getProductStock->stock >= $updated_quantity){
+           DB::table('cart')->where('id',$id)->increment('quantity',$quantity);
+            return redirect('cart')->with('flash_success_message','Quantity has been updated Successfully!');
+       }else{
+           return redirect('cart')->with('flash_message_error','Required Product Quantity is not available!');
+       }
+
+}
+
+
+// Apply Coupon
+public function applyCoupon(Request $request) {
+
+   Session::forget('CouponAmount');
+   Session::forget('CouponCode');
+
+   $data = $request->all();
+   $count = Coupon::where('coupon_code',$data['coupon_code'])->count();
+   if($count == 0) {
+      return redirect()->back()->with('flash_message_error','Coupon Code  is invalid!');
+   }else {
+
+     // with perform other checks like Active/Inactive, Expiry date..
+
+         // Get Coupon Details
+         $couponDetails = Coupon::where('coupon_code',$data['coupon_code'])->first();
+
+         // If coupon is Inactive
+         if($couponDetails->status==0){
+             return redirect()->back()->with('flash_message_error','This coupon is not active!');
+         }
+
+         // If coupon is Expired
+         $expiry_date = $couponDetails->expiry_date;
+         $current_date = date('Y-m-d');
+         if($expiry_date < $current_date){
+             return redirect()->back()->with('flash_message_error','This coupon is expired!');
+         }
+
+         $session_id = Session::get('session_id');
+            $userCart = DB::table('cart')->where(['session_id' => $session_id])->get();
+            $total_amount = 0;
+            foreach($userCart as $item){
+               $total_amount = $total_amount + ($item->price * $item->quantity);
+            }
+
+            // Check if amount type is Fixed or Percentage
+               if($couponDetails->amount_type=="fixed"){
+                   $couponAmount = $couponDetails->amount;
+               }else{
+                   $couponAmount = $total_amount * ($couponDetails->amount/100);
+               }
+
+               // Add Coupon Code & Amount in Session
+               Session::put('CouponAmount',$couponAmount);
+               Session::put('CouponCode',$data['coupon_code']);
+
+               return redirect()->back()->with('flash_success_message','Coupon code successfully
+                   applied. You are availing discount!');
+
+
+   }  // end else
+} //
 
 } // End Class

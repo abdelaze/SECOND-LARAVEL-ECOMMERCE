@@ -23,6 +23,14 @@
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script src="{{ asset('js/backend_js/typehead.js') }}"></script>
 <script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+<script>
+$(function() {
+  $("#expiry_date").datepicker({
+    minDate: 0,
+    dateFormat: 'yy-mm-dd'
+  });
+});
+</script>
 
 <script type="text/javascript">
   // This function is called from the pop-up menus to transfer to

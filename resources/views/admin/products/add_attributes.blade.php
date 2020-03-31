@@ -20,7 +20,7 @@
                <button type="button" class="close" data-dismiss="alert">×</button>
                    <strong>{!! session('flash_message_error') !!}</strong>
            </div>
- @endif   
+ @endif
 
   <hr>
   <div class="row-fluid">
@@ -88,7 +88,7 @@
             <h5>Attributes</h5>
           </div>
           <div class="widget-content nopadding">
-
+             <form action="{{ url('admin/edit_attributes/'.$productDetails->id) }}" method="post">{{ csrf_field() }}
               <table class="table table-bordered data-table">
                 <thead>
                   <tr>
@@ -103,12 +103,13 @@
                 <tbody>
                   @foreach($productDetails['attributes'] as $attribute)
                   <tr class="gradeX">
-                    <td class="center">{{ $attribute->id }}</td>
-                    <td class="center">{{ $attribute->sku }}</td>
+                     <td class="center"><input type="hidden" name="idAttr[]" value="{{ $attribute->id }}">{{ $attribute->id }}</td>
+                     <td class="center">{{ $attribute->sku }}</td>
                     <td class="center">{{ $attribute->size }}</td>
-                    <td class="center">{{ $attribute->price }}</td>
-                    <td class="center">{{$attribute->stock }}</td>
+                    <td class="center"><input name="price[]" type="text" value="{{ $attribute->price }}" /></td>
+                   <td class="center"><input name="stock[]" type="text" value="{{ $attribute->stock }}" required /></td>
                     <td class="center">
+                       <input type="submit" value="Update" class="btn btn-primary btn-mini" />
                      <a id="delAttrt" rel="{{ $attribute->id }}" rel1="delete_attribute" href="javascript:"  class="btn btn-danger btn-mini deleteRecord">Delete</a>
                     </td>
 

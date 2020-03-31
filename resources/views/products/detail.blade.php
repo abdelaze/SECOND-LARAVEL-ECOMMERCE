@@ -5,6 +5,19 @@
 <section>
 		<div class="container">
 			<div class="row">
+				@if (Session::has('flash_success_message'))
+              <div class="alert alert-success alert-block">
+              <button type="button" class="close" data-dismiss="alert">×</button>
+              <strong>{!!Session('flash_success_message')!!}</strong>
+              </div>
+       @endif
+
+       @if(Session::has('flash_message_error'))
+                 <div class="alert alert-error alert-block" style="background:red;color:#fff;">
+                     <button type="button" class="close" data-dismiss="alert">×</button>
+                         <strong>{!! session('flash_message_error') !!}</strong>
+                 </div>
+       @endif
 				<div class="col-sm-3">
         @include('layouts.frontlayout.front_side')
         </div>
@@ -33,7 +46,12 @@
 										</a>
 										<?php
 
-											  for($x=0;$x<2;$x++){?>
+
+											  for($x=0;$x<2;$x++){
+
+												     	if(empty($productaltimages[$x]['image'])) {
+														 break;
+													}?>
 													<a href="{{asset('images/backend_images/product/medium/'.$productaltimages[$x]['image'])}}" data-standard="{{asset('images/backend_images/product/medium/'.$productaltimages[$x]['image'])}}">
 													<img class="changeImage" style="width:80px;cursor:pointer;" src="{{asset('images/backend_images/product/small/'.$productaltimages[$x]['image'])}}" alt="">
 												</a>
@@ -68,6 +86,7 @@
 
 								}
 
+
 					 ?>
 
 
@@ -88,35 +107,49 @@
 
 						</div>
 						<div class="col-sm-7">
+
+							<form name="addtoCartForm" id="addtoCartForm" action="{{ url('add_cart') }}" method="post">
+								{{ csrf_field() }}
+                <input type="hidden" name="product_id" value="{{ $productDetails->id }}">
+                <input type="hidden" name="product_name" value="{{ $productDetails->product_name }}">
+                <input type="hidden" name="product_code" value="{{ $productDetails->product_code }}">
+                <input type="hidden" name="product_color" value="{{ $productDetails->product_color }}">
+                <input type="hidden" name="price" id="price" value="{{ $productDetails->price }}">
 							<div class="product-information"><!--/product-information-->
 								<img src="{{asset('images/frontend_images/product-details/new.jpg')}}" class="newarrival" alt="" />
 								<h2>{{$productDetails->product_name}}</h2>
 								<p>{{$productDetails->product_code}}</p>
-								<img src="{{asset('images/frontend_images/product-details/rating.png')}}" alt="" />
+								<p><img src="{{asset('images/frontend_images/product-details/rating.png')}}" alt="" /></p>
 								<span>
 									<p>
 
 										<select id="selSize" name="size" style="width:150px;" required>
+
 											<option value="">Select Size</option>
+
 											@foreach($productDetails->attributes as $sizes)
 											<option value="{{ $productDetails->id }}-{{ $sizes->size }}">{{ $sizes->size }}</option>
 											@endforeach
 										</select>
 									</p>
-
+                  <p>
 									<span id="getPrice">INR {{$productDetails->price}}</span>
 									<label>Quantity:</label>
-									<input type="text" value="1" />
-									<button type="button" class="btn btn-fefault cart">
+									<input type="text" name="quantity" value="1" />
+									@if($totalstock >0 )
+									<button type="submit" class="btn btn-fefault cart" id="cartButton">
 										<i class="fa fa-shopping-cart"></i>
 										Add to cart
 									</button>
+								</p>
+									@endif
 								</span>
-								<p><b>Availability:</b> In Stock</p>
+								<p><b>Availability:</b> <span id="availability">	@if($totalstock >0 ) In Stock @else Out Of Stock @endif</span></p>
 								<p><b>Condition:</b> New</p>
 
 								<a href=""><img src="{{asset('images/frontend_images/product-details/share.png')}}" class="share img-responsive"  alt="" /></a>
 							</div><!--/product-information-->
+						</form>
 						</div>
 					</div><!--/product-details-->
 
@@ -173,12 +206,55 @@
 						</div>
 					</div><!--/category-tab-->
 
+					<div class="recommended_items"><!--recommended_items-->
+						<h2 class="title text-center">recommended items</h2>
+
+						<div id="recommended-item-carousel" class="carousel slide" data-ride="carousel">
+							<div class="carousel-inner">
+
+								`	<?php $count=1; ?>
+								 @foreach($relatedProducts->chunk(3) as $chunk)
+								 <div <?php if($count==1){ ?> class="item active" <?php } else { ?> class="item" <?php } ?>>
+									 @foreach($chunk as $item)
+									 <div class="col-sm-4">
+										 <div class="product-image-wrapper">
+											 <div class="single-products">
+												 <div class="productinfo text-center">
+													 <img style="width:200px;" src="{{ asset('images/backend_images/product/small/'.$item->image) }}" alt="" />
+													 <h2>INR {{ $item->price }}</h2>
+													 <p>{{ $item->product_name }}</p>
+													 <a href="{{ url('/product/'.$item->id) }}"><button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button></a>
+												 </div>
+											 </div>
+										 </div>
+									 </div>
+									 @endforeach
+								 </div>
+								 <?php $count++; ?>
+								 @endforeach`
+
+
+						</div>
+
+
+
+							 <a class="left recommended-item-control" href="#recommended-item-carousel" data-slide="prev">
+								<i class="fa fa-angle-left"></i>
+							  </a>
+							  <a class="right recommended-item-control" href="#recommended-item-carousel" data-slide="next">
+								<i class="fa fa-angle-right"></i>
+							  </a>
+						</div>
+					</div><!--/recommended_items-->
+
 
 
 				</div>
 			</div>
 		</div>
 		</div>
+
+
 	</section>
 
 
