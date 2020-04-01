@@ -50,7 +50,13 @@ Route::match(['get','post'],'/account','UsersController@account');
 // Check User Current Password
 	Route::post('/check_user_pwd','UsersController@chkUserPassword');
   // Update User Password
-  	Route::post('/update_user_pwd','UsersController@updatePassword');
+  Route::post('/update_user_pwd','UsersController@updatePassword');
+	//checkout page
+	Route::match(['get','post'],'/checkout','ProductController@checkout');
+
+	Route::match(['get','post'],'/order_review','ProductController@orderReview');
+
+
 });
 
 

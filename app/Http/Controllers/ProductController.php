@@ -13,6 +13,10 @@ use App\ProductAttribute;
 use App\ProductsImage;
 use App\Coupon;
 use DB;
+use App\Country;
+use App\User;
+use App\DeliveryAddress;
+
 
 class ProductController extends Controller
 {
@@ -521,5 +525,75 @@ public function applyCoupon(Request $request) {
 
    }  // end else
 } //
+
+//checkout
+public function checkout(Request $request) {
+     $user_id = Auth::user()->id;
+     $user_email = Auth::user()->email;
+     $userDetails = User::find($user_id);
+     $countries = Country::get();
+
+     //Check if Shipping Address exists
+     $shippingCount = DeliveryAddress::where('user_id',$user_id)->count();
+     $shippingDetails = array(); 
+     if($shippingCount>0){
+         $shippingDetails = DeliveryAddress::where('user_id',$user_id)->first();
+     }
+
+     // Update cart table with user email
+     $session_id = Session::get('session_id');
+     DB::table('cart')->where(['session_id'=>$session_id])->update(['user_email'=>$user_email]);
+     if($request->isMethod('post')){
+         $data = $request->all();
+         /*echo "<pre>"; print_r($data); die;*/
+         // Return to Checkout page if any of the field is empty
+         if(empty($data['billing_name']) || empty($data['billing_address']) || empty($data['billing_city']) || empty($data['billing_state']) || empty($data['billing_country']) || empty($data['billing_pincode']) || empty($data['billing_mobile']) || empty($data['shipping_name']) || empty($data['shipping_address']) || empty($data['shipping_city']) || empty($data['shipping_state']) || empty($data['shipping_country']) || empty($data['shipping_pincode']) || empty($data['shipping_mobile'])){
+                 return redirect()->back()->with('flash_message_error','Please fill all fields to Checkout!');
+         }
+
+         // Update User details
+         User::where('id',$user_id)->update(['name'=>$data['billing_name'],'address'=>$data['billing_address'],'city'=>$data['billing_city'],'state'=>$data['billing_state'],'pincode'=>$data['billing_pincode'],'country'=>$data['billing_country'],'mobile'=>$data['billing_mobile']]);
+
+         if($shippingCount>0){
+             // Update Shipping Address
+             DeliveryAddress::where('user_id',$user_id)->update(['name'=>$data['shipping_name'],'address'=>$data['shipping_address'],'city'=>$data['shipping_city'],'state'=>$data['shipping_state'],'pincode'=>$data['shipping_pincode'],'country'=>$data['shipping_country'],'mobile'=>$data['shipping_mobile']]);
+         }else{
+             // Add New Shipping Address
+             $shipping = new DeliveryAddress;
+             $shipping->user_id = $user_id;
+             $shipping->user_email = $user_email;
+             $shipping->name = $data['shipping_name'];
+             $shipping->address = $data['shipping_address'];
+             $shipping->city = $data['shipping_city'];
+             $shipping->state = $data['shipping_state'];
+             $shipping->pincode = $data['shipping_pincode'];
+             $shipping->country = $data['shipping_country'];
+             $shipping->mobile = $data['shipping_mobile'];
+             $shipping->save();
+         }
+
+         return redirect()->action('ProductController@orderReview');
+     }
+
+     return view('products.checkout')->with(compact('userDetails','countries','shippingDetails'));
+}
+
+// order review
+public function orderReview(Request $request) {
+        $user_id = Auth::user()->id;
+        $user_email = Auth::user()->email;
+        $userDetails = User::where('id',$user_id)->first();
+        $shippingDetails = DeliveryAddress::where('user_id',$user_id)->first();
+        $shippingDetails = json_decode(json_encode($shippingDetails));
+        $userCart = DB::table('cart')->where(['user_email' => $user_email])->get();
+        foreach($userCart as $key => $product){
+            $productDetails = Product::where('id',$product->product_id)->first();
+            $userCart[$key]->image = $productDetails->image;
+        }
+        /*echo "<pre>"; print_r($userCart); die;*/
+        return view('products.order_review')->with(compact('userDetails','shippingDetails','userCart'));
+}
+
+
 
 } // End Class
