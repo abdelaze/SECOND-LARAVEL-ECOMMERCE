@@ -53,8 +53,28 @@ Route::match(['get','post'],'/account','UsersController@account');
   Route::post('/update_user_pwd','UsersController@updatePassword');
 	//checkout page
 	Route::match(['get','post'],'/checkout','ProductController@checkout');
-
+  // order review
 	Route::match(['get','post'],'/order_review','ProductController@orderReview');
+	// order placement
+	Route::match(['get','post'],'/place_order','ProductController@placeOrder');
+	// thanks page
+	Route::get('/thanks','ProductController@thanks');
+	// orders page
+	Route::get('/orders','ProductController@userOrders');
+	//orders details page
+  Route::get('/orders/{id}','ProductController@userOrderDetails');
+	// paypal page
+	Route::get('/paypal','ProductController@paypal');
+	// paypal thanks
+	Route::get('/paypal/thanks','ProductController@thanksPaypal');
+
+	// paypal page
+	Route::get('/paypal/cancel','ProductController@cancelPaypal');
+
+  // make charge using stripe payment
+
+  Route::match(['get','post'],'/charge','ProductController@charge');
+
 
 
 });
@@ -70,7 +90,8 @@ Route::match(['get','post'],'/account','UsersController@account');
 Route::match(['get','post'],'/admin','AdminController@login');
 Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
-   Route::group(['middleware'=>['auth']],function(){
+
+   Route::group(['middleware'=>['adminlogin']],function(){
 
      Route::get('/admin/dashboard','AdminController@dashboard');
      Route::get('/admin/settings','AdminController@settings');
@@ -112,6 +133,10 @@ Route::get('/home', 'HomeController@index')->name('home');
      Route::match(['get','post'],'/admin/edit_banner/{id}','BannersController@editBanner');
      Route::get('/admin/delete_banner/{id}','BannersController@deleteBanner');
 
+     //orders routes
+		 Route::get('/admin/view_orders','productController@viewOrders');
+		 Route::get('/admin/view_order/{id}','productController@viewOrderDetails');
+		 Route::post('/admin/update_order_status','ProductController@updateOrderStatus');
 });
 
 

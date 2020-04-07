@@ -27,6 +27,13 @@
       </ul>
     </li>
 
+    <li class="submenu"> <a href="#"><i class="icon icon-info-sign"></i> <span>Orders</span> <span class="label label-important">1</span></a>
+      <ul <?php if (preg_match("/orders/i", $url)){ ?> style="display: block;" <?php } ?>>
+      <li <?php if (preg_match("/view_orders/i", $url)){ ?> class="active" <?php } ?>><a href="{{url('/admin/view_orders')}}">view</a></li>
+
+      </ul>
+    </li>
+
     <li class="submenu"> <a href="#"><i class="icon icon-info-sign"></i> <span>Banners</span> <span class="label label-important">2</span></a>
       <ul <?php if (preg_match("/banner/i", $url)){ ?> style="display: block;" <?php } ?>>
         <li <?php if (preg_match("/add_banner/i", $url)){ ?> class="active" <?php } ?>><a href="{{ url('/admin/add_banner') }}">create</a></li>

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\User;
 use Auth;
 use Session;
+use DB;
 use App\Country;
 use Illuminate\Support\Facades\Hash;
 
@@ -40,6 +41,10 @@ class UsersController extends Controller
               $user->save();
                if(Auth::attempt(['email'=>$data['email'],'password'=>$data['password']])){
                     Session::put('frontSession',$data['email']);
+                    if(!empty(Session::get('session_id'))){
+                    $session_id = Session::get('session_id');
+                    DB::table('cart')->where('session_id',$session_id)->update(['user_email' => $data['email']]);
+                }
                     return redirect('/cart');
               }
       }
@@ -57,6 +62,10 @@ public function login(Request $request){
            if(Auth::attempt(['email'=>$data['email'],'password'=>$data['password']])){
 
               Session::put('frontSession',$data['email']);
+              if(!empty(Session::get('session_id'))){
+                    $session_id = Session::get('session_id');
+                    DB::table('cart')->where('session_id',$session_id)->update(['user_email' => $data['email']]);
+                }
                return redirect('/cart');
 
            }else{
@@ -71,6 +80,7 @@ public function login(Request $request){
 
       Auth::logout();
       Session::forget('frontSession');
+      Session::forget('session_id');
       return redirect('/');
   }
 

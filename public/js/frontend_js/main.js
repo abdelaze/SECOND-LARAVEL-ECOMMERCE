@@ -336,5 +336,15 @@ $('#copyAddress').on('click',function(){
       $('#shipping_mobile').val('');
     }
 });
-
+$('#Paypal').is(':checked')
 });
+
+// show message if not select payment method
+function selectPaymentMethod() {
+   if($('#Paypal').is(':checked') || $('#COD').is(':checked')) {
+
+   }else {
+     alert('please select payment method!');
+     return false;
+   }
+}

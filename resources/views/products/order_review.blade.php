@@ -147,7 +147,7 @@
 					</tbody>
 				</table>
 			</div>
-			<form name="paymentForm" id="paymentForm" action="{{ url('/place-order') }}" method="post">{{ csrf_field() }}
+			<form name="paymentForm" id="paymentForm" action="{{ url('/place_order') }}" method="post">{{ csrf_field() }}
 				<input type="hidden" name="grand_total" value="{{ $grand_total }}">
 				<div class="payment-options">
 					<span>
@@ -164,6 +164,7 @@
 					</span>
 				</div>
 			</form>
+
 		</div>
 	</section> <!--/#cart_items-->
 
