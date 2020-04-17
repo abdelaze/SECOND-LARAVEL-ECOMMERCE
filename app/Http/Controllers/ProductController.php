@@ -19,6 +19,7 @@ use App\User;
 use App\DeliveryAddress;
 use App\Order;
 use App\OrdersProduct;
+use Mail;
 
 
 class ProductController extends Controller
@@ -674,6 +675,28 @@ public function placeOrder(Request $request) {
            Session::put('order_id',$order_id);
            Session::put('grand_total',$data['grand_total']);
            if($data['payment_method'] == "COD") {
+
+             $productDetails = Order::with('orders')->where('id',$order_id)->first();
+            // $productDetails = json_decode(json_encode($productDetails),true);
+             /*echo "<pre>"; print_r($productDetails);*/ /*die;*/
+
+             $userDetails = User::where('id',$user_id)->first();
+            // $userDetails = json_decode(json_encode($userDetails),true);
+             /*echo "<pre>"; print_r($userDetails); die; */
+             /* Code for Order Email Start */
+             $email = $user_email;
+             $messageData = [
+                 'email' => $email,
+                 'name' => $shippingDetails->name,
+                 'order_id' => $order_id,
+                 'productDetails' => $productDetails,
+                 'userDetails' => $userDetails
+             ];
+             Mail::send('emails.order',$messageData,function($message) use($email){
+                 $message->to($email)->subject('Order Placed - E-com Website');
+             });
+             /* Code for Order Email Ends */
+
                return redirect('/thanks');
            }else {
              return redirect('/paypal');

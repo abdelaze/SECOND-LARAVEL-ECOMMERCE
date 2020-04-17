@@ -9,6 +9,7 @@ use Session;
 use DB;
 use App\Country;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class UsersController extends Controller
 {
@@ -39,6 +40,22 @@ class UsersController extends Controller
               $user->email = $data['email'];
               $user->password = bcrypt($data['password']);
               $user->save();
+              // $email = $data['email'];
+              //  $messageData = ['email'=>$data['email'],'name'=>$data['name']];
+              //  Mail::send('emails.register',$messageData,function($message) use($email){
+              //      $message->to($email)->subject('Registration with E-com Website');
+              //  });
+
+              // confirm user email
+              // Send Confirmation Email
+                $email = $data['email'];
+                $messageData = ['email'=>$data['email'],'name'=>$data['name'],'code'=>base64_encode($data['email'])];
+                Mail::send('emails.confirm',$messageData,function($message) use($email){
+                    $message->to($email)->subject('Confirm your E-com Account');
+                });
+
+                return redirect()->back()->with('flash_success_message','Please confirm your email to activate your account!');
+
                if(Auth::attempt(['email'=>$data['email'],'password'=>$data['password']])){
                     Session::put('frontSession',$data['email']);
                     if(!empty(Session::get('session_id'))){
@@ -60,7 +77,10 @@ public function login(Request $request){
            $data = $request->all();
            /*echo "<pre>"; print_r($data); die;*/
            if(Auth::attempt(['email'=>$data['email'],'password'=>$data['password']])){
-
+             $userStatus = User::where('email',$data['email'])->first();
+               if($userStatus->status == 0){
+                   return redirect()->back()->with('flash_message_error','Your account is not activated! Please confirm your email to activate.');
+               }
               Session::put('frontSession',$data['email']);
               if(!empty(Session::get('session_id'))){
                     $session_id = Session::get('session_id');
@@ -72,6 +92,31 @@ public function login(Request $request){
                return redirect()->back()->with('flash_message_error','Invalid Username or Password!');
            }
        }
+}
+
+// confirm account
+
+public function confirmAccount($email){
+        $email = base64_decode($email);
+        $userCount = User::where('email',$email)->count();
+        if($userCount > 0){
+            $userDetails = User::where('email',$email)->first();
+            if($userDetails->status == 1){
+                return redirect('login_register')->with('flash_success_message','Your Email account is already activated. You can login now.');
+            }else{
+                User::where('email',$email)->update(['status'=>1]);
+
+                // Send Welcome Email
+                $messageData = ['email'=>$email,'name'=>$userDetails->name];
+                Mail::send('emails.welcome',$messageData,function($message) use($email){
+                    $message->to($email)->subject('Welcome to E-com Website');
+                });
+
+                return redirect('login_register')->with('flash_success_message','Your Email account is activated. You can login now.');
+            }
+        }else{
+            abort(404);
+        }
 }
 
 // logout function
@@ -181,5 +226,11 @@ public function updatePassword(Request $request){
            }
        }
   }
+
+ // view users
+ public function viewUsers() {
+      $users = User::get();
+       return view('admin.users.view_users')->with(compact('users'));
+ }
 
 } //end of the class

@@ -37,7 +37,15 @@
     <li class="submenu"> <a href="#"><i class="icon icon-info-sign"></i> <span>Banners</span> <span class="label label-important">2</span></a>
       <ul <?php if (preg_match("/banner/i", $url)){ ?> style="display: block;" <?php } ?>>
         <li <?php if (preg_match("/add_banner/i", $url)){ ?> class="active" <?php } ?>><a href="{{ url('/admin/add_banner') }}">create</a></li>
-        <li <?php if (preg_match("/view-banners/i", $url)){ ?> class="active" <?php } ?>><a href="{{url('/admin/view_banners')}}">view</a></li>
+        <li <?php if (preg_match("/view_banners/i", $url)){ ?> class="active" <?php } ?>><a href="{{url('/admin/view_banners')}}">view</a></li>
+
+      </ul>
+    </li>
+
+    <li class="submenu"> <a href="#"><i class="icon icon-info-sign"></i> <span>Users</span> <span class="label label-important">2</span></a>
+      <ul <?php if (preg_match("/user/i", $url)){ ?> style="display: block;" <?php } ?>>
+
+        <li <?php if (preg_match("/view_users/i", $url)){ ?> class="active" <?php } ?>><a href="{{url('/admin/view_users')}}">view</a></li>
 
       </ul>
     </li>

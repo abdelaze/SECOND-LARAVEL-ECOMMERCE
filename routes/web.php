@@ -44,6 +44,9 @@ Route::post('/user_register','UsersController@register');
 Route::post('/user_login','UsersController@login');
 Route::get('/user_logout','UsersController@logout');
 
+// confirm email
+Route::get('/confirm/{code}','UsersController@confirmAccount');
+
 Route::group(['middleware'=>['frontlogin']],function(){
 
 Route::match(['get','post'],'/account','UsersController@account');
@@ -137,6 +140,10 @@ Route::get('/home', 'HomeController@index')->name('home');
 		 Route::get('/admin/view_orders','productController@viewOrders');
 		 Route::get('/admin/view_order/{id}','productController@viewOrderDetails');
 		 Route::post('/admin/update_order_status','ProductController@updateOrderStatus');
+
+		 // view registers users route
+		  Route::get('/admin/view_users','UsersController@viewUsers');
+
 });
 
 
