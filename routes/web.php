@@ -32,8 +32,10 @@ Route::get('/get_product_price','ProductController@getProductPrice');
 //cart  routes
 Route::match(['get','post'],'/add_cart','ProductController@addCart');
 Route::get('/cart','ProductController@cart');
+Route::get('/cart2','ProductController@cart2');
 Route::get('/cart/delete_product/{id}','ProductController@deleteCartProduct');
 Route::get('/cart/update_quantity/{id}/{quantitiy}','ProductController@updateCartProduct');
+//Route::post('/cart/update_quantity','ProductController@updateCartProduct');
 // Apply Coupon
 Route::post('/cart/apply_coupon','ProductController@applyCoupon');
 
@@ -46,6 +48,9 @@ Route::get('/user_logout','UsersController@logout');
 
 // confirm email
 Route::get('/confirm/{code}','UsersController@confirmAccount');
+
+// Search products Route
+Route::post('/search_products','ProductController@searchProducts');
 
 Route::group(['middleware'=>['frontlogin']],function(){
 
@@ -140,6 +145,9 @@ Route::get('/home', 'HomeController@index')->name('home');
 		 Route::get('/admin/view_orders','productController@viewOrders');
 		 Route::get('/admin/view_order/{id}','productController@viewOrderDetails');
 		 Route::post('/admin/update_order_status','ProductController@updateOrderStatus');
+		 // order invoice
+		 Route::get('/admin/view_order_invoice/{id}','productController@viewOrderInvoice');
+
 
 		 // view registers users route
 		  Route::get('/admin/view_users','UsersController@viewUsers');

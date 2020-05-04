@@ -60,6 +60,7 @@
                   <td class="center">{{ $order->payment_method }}</td>
                   <td class="center">
                     <a target="_blank" href="{{ url('admin/view_order/'.$order->id)}}" class="btn btn-success btn-mini">View Order Details</a>
+                  <br><br>  <a target="_blank" href="{{ url('admin/view_order_invoice/'.$order->id)}}" class="btn btn-danger btn-mini">View Order Invoice</a>
                   </td>
                 </tr>
                 @endforeach

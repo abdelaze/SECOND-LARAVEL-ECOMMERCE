@@ -26,6 +26,8 @@
                 </div>
       @endif
 
+
+  
        <table class="table table-condensed">
          <thead>
            <tr class="cart_menu">
@@ -58,7 +60,19 @@
                   @if($cart->quantity>1)
                  <a class="cart_quantity_down" href="{{url('/cart/update_quantity/'.$cart->id.'/-1')}}"> - </a>
                  @endif
+                    <!-- <input type="hidden" id="cart_id" name="cart_id" value="{{$cart->id}}">
+                  &nbsp<button class="btn btn-sm btn-default" id="cart_quantity_up">+</button>
+
+
+
+                 <input class="cart_quantity_input" type="text" name="quantity" value="{{$cart->quantity}}"  autocomplete="off" size="2">
+                  @if($cart->quantity>1)
+                   &nbsp<button class="btn btn-sm btn-default" id="cart_quantity_down">-</button>
+                   @endif -->
+
+
                </div>
+
              </td>
              <td class="cart_total">
                <p class="cart_total_price">{{$cart->price*$cart->quantity}}</p>
@@ -73,6 +87,7 @@
 
          </tbody>
        </table>
+
      </div>
    </div>
  </section> <!--/#cart_items-->
@@ -117,6 +132,7 @@
      </div>
    </div>
  </section><!--/#do_action-->
+
 
 
 

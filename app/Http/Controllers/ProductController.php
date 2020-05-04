@@ -20,6 +20,7 @@ use App\DeliveryAddress;
 use App\Order;
 use App\OrdersProduct;
 use Mail;
+use DataTables;
 
 
 class ProductController extends Controller
@@ -408,6 +409,13 @@ public function addCart(Request $request){
         Session::forget('CouponCode');
         $data = $request->all();
        /*echo "<pre>"; print_r($data); die;*/
+       // Check Product Stock is available or not
+       $product_size = explode("-",$data['size']);
+       $getProductStock = ProductAttribute::where(['product_id'=>$data['product_id'],'size'=>$product_size[1]])->first();
+
+       if($getProductStock->stock<$data['quantity']){
+           return redirect()->back()->with('flash_message_error','Required Quantity is not available!');
+       }
        if(empty(Auth::user()->email)){
            $data['user_email'] = '';
        }else{
@@ -460,6 +468,44 @@ public function cart() {
          return view('products.cart')->with(compact('userCart'));
 }
 
+public function cart2(Request $request) {
+
+  if($request->ajax())
+     {
+          if(Auth::check()){
+               $user_email = Auth::user()->email;
+               $userCart = DB::table('cart')->where(['user_email' => $user_email])->get();
+           } else {
+              $session_id = Session::get('session_id');
+              $userCart = DB::table('cart')->where(['session_id' => $session_id])->get();
+          }
+
+              foreach($userCart as $key => $product){
+                       $productDetails = Product::where('id',$product->product_id)->first();
+                       $userCart[$key]->image = $productDetails->image;
+                   }
+
+
+                 /*echo "<pre>"; print_r($userCart); die;*/
+                 return DataTables::of($userCart)
+                   ->addColumn('action', function($userCart){
+
+                       $button = '<button type="button" name="delete" id="'.$userCart->id.'" class="cart_quantity_delete btn btn-danger btn-sm"><i class="fa fa-times"></i></button>';
+
+
+                       return $button;
+
+                   })
+                   ->rawColumns(['action'])
+                   ->make(true);
+       }
+
+
+
+             return view('products.cart2');
+
+}
+
 public function deleteCartProduct($id = null ) {
   Session::forget('CouponAmount');
   Session::forget('CouponCode');
@@ -482,6 +528,27 @@ public function updateCartProduct($id = null ,$quantity= null) {
        }
 
 }
+// public function updateCartProduct(Request $request) {
+//   $data = $request->all();
+//   //echo $data['cartID']; die;
+//     Session::forget('CouponAmount');
+//     Session::forget('CouponCode');
+//       $getProductSKU = DB::table('cart')->select('product_code','quantity')->where('id',$data['cartID'])->first();
+//          $getProductStock = ProductAttribute::where('sku',$getProductSKU->product_code)->first();
+//          $updated_quantity = $getProductSKU->quantity+ $data['quantity'];
+//          if($getProductStock->stock >= $updated_quantity){
+//              DB::table('cart')->where('id',$data['cartID'])->increment('quantity',$data['quantity']);
+//             // return redirect('cart')->with('flash_success_message','Quantity has been updated Successfully!');
+//
+//                 $cartdata =  DB::table('cart')->where('id',$data['cartID'])->first();
+//                 return response()->json(['quantity' => $cartdata->quantity]);
+//          }else{
+//
+//              //return redirect('cart')->with('flash_message_error','Required Product Quantity is not available!');
+//              return response()->json(['error' => 'Required Product Quantity is not available!']);
+//          }
+//
+// }
 
 
 // Apply Coupon
@@ -738,6 +805,9 @@ public function userOrderDetails($order_id){
         return view('orders.user_order_details')->with(compact('orderDetails'));
 }
 
+// order invoice
+
+
 public function thanksPaypal(){
    return view('orders.thanks_paypal');
 }
@@ -790,6 +860,23 @@ public function viewOrderDetails($order_id){
         return view('admin.orders.order_details')->with(compact('orderDetails','userDetails'));
 }
 
+//order invoice
+
+public function viewOrderInvoice($order_id){
+
+        $orderDetails = Order::with('orders')->where('id',$order_id)->first();
+      //  $orderDetails = json_decode(json_encode($orderDetails));
+        /*echo "<pre>"; print_r($orderDetails); die;*/
+        $user_id = $orderDetails->user_id;
+        $userDetails = User::where('id',$user_id)->first();
+        /*$userDetails = json_decode(json_encode($userDetails));
+        echo "<pre>"; print_r($userDetails);*/
+        return view('admin.orders.order_invoice')->with(compact('orderDetails','userDetails'));
+}
+
+
+
+
 //update order status
 
 public function updateOrderStatus(Request $request) {
@@ -798,6 +885,29 @@ public function updateOrderStatus(Request $request) {
           Order::where('id',$data['order_id'])->update(['order_status'=>$data['order_status']]);
           return redirect()->back()->with('flash_success_message','order status has been updated successfully! ');
    }
+}
+
+// Search products by code or name
+public function searchProducts(Request $request){
+       if($request->isMethod('post')){
+           $data = $request->all();
+           /*echo "<pre>"; print_r($data); die;*/
+
+           $categories = Category::with('categories')->where(['parent_id' => 0])->get();
+
+           $search_product = $data['product'];
+
+           $products = Product::where('product_name','like','%'.$search_product.'%')->orwhere('product_code',$search_product)->where('status',1)->get();
+          //  dd($products);die;
+      //  var_dump(count($products));die;
+           if(count($products) == 0 ) {
+   //echo "test";die;
+              return redirect()->back()->with('flash_message_error','The Searched Item Not Fount');
+           }else {
+           return view('products.listing')->with(compact('categories','products','search_product'));
+         }
+
+       }
 }
 
 } // End Class

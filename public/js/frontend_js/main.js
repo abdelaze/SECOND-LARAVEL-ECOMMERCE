@@ -339,6 +339,100 @@ $('#copyAddress').on('click',function(){
 $('#Paypal').is(':checked')
 });
 
+// update cart Quantity
+
+$(document).ready(function(){
+
+// $('#cart_quantity_up').on('click',function(){
+//
+//      var cartID = $('#cart_id').val();
+//      var quantity = 1//$('.cart_quantity_input').val();
+//      //alert($quantity);
+//      $.ajax({
+//            url: '/cart/update_quantity',
+//            method:"POST",
+//            dataType:"json",
+//            data : {
+//              'cartID'   : cartID ,
+//              'quantity' : quantity
+//            },
+//            success:function(resp)
+//            {
+//
+//
+//                       if(resp.quantity) {
+//
+//                         $('.cart_quantity_input').val(resp.quantity);
+//
+//                     }
+//
+//                     if(resp.error) {
+//                       $error = '<div class="alert alert-danger">' + resp.error + '</div>';
+//
+//                       $('#cart_error').html($error);
+//
+//                       setTimeout(function(){
+//
+//                               $('#cart_error').css('display','none');
+//
+//                        },3000)
+//                 }
+//
+//              $("#cart_data").load(window.location + " #cart_data");
+//
+//           }
+//
+//
+//    });
+//
+//    });// end add button
+//
+//    $('#cart_quantity_down').on('click',function(){
+//
+//         var cartID = $('#cart_id').val();
+//         var quantity = -1;//$('.cart_quantity_input').val();
+//         //alert($quantity);
+//         $.ajax({
+//               url: '/cart/update_quantity',
+//               method:"POST",
+//               dataType:"json",
+//               data : {
+//                 'cartID'   : cartID ,
+//                 'quantity' : quantity
+//               },
+//               success:function(resp)
+//               {
+//
+//
+//
+//                            $('.cart_quantity_input').val(resp.quantity);
+//                              //location.reload(true);
+//                            // if(resp.quantity <=1) {
+//                            //   $(this).css('display','none');
+//                            // }
+//                            // else {
+//                            //     $(this).css('display','block');
+//                            // }
+//                         //    var table = $('#cart_data').DataTable( {
+//                         //     ajax: "data.json"
+//                         // } );
+//                       $("#myTable").load(window.location + " #myTable");
+//                       //$('#myTable').load();
+//                       //  table.ajax.reload();
+//
+//
+//              }
+//
+//
+//       }); // end minus button
+//
+//
+// });
+
+
+
+});
+
 // show message if not select payment method
 function selectPaymentMethod() {
    if($('#Paypal').is(':checked') || $('#COD').is(':checked')) {
@@ -348,3 +442,7 @@ function selectPaymentMethod() {
      return false;
    }
 }
+
+
+
+// use data table
